@@ -5,7 +5,7 @@ const app = express();
 app.use(express.json());
 
 // Replace with your actual GHL webhook URL
-const GHL_WEBHOOK_URL = process.env.GHL_WEBHOOK_URL || 'https://your-ghl-instance.com/webhook-endpoint';
+const GHL_WEBHOOK_URL = process.env.GHL_WEBHOOK_URL || 'https://services.leadconnectorhq.com/hooks/9RO36OEQxzdIqkmWAwE1/webhook-trigger/a566467d-02f2-4143-8a56-44864a060d30';
 
 app.post('/webhook', async (req, res) => {
   try {
