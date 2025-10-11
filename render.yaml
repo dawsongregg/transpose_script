@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: ghl-webhook-processor
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: GHL_WEBHOOK_URL
+        sync: false
