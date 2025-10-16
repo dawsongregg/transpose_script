@@ -18,42 +18,81 @@ const first = (...vals) =>
 // pull safely from many possible locations / spellings
 function normalize(src) {
   const cd = src.customData || src.customFields || {};
+  const raw = src.raw || src; // handle GHL's raw body structure
 
   // identify who filled out the form
   const actor = (
     first(
       cd.student_parent_or_student,
-      src.student_parent_or_student,
+      raw.student_parent_or_student,
+      raw["Are you a parent or a student? "],
       cd.userType,
-      src.contactType
+      raw.contactType
     ) || "Unknown"
   ).toString().trim();
 
   // sender (who filled out)
   const sender = {
-    firstName: first(src.firstName, src.first_name, cd.first_name),
-    lastName:  first(src.lastName, src.last_name, cd.last_name),
-    email:     first(src.email, cd.email),
-    phone:     first(src.phone, cd.phone)
+    firstName: first(src.firstName, src.first_name, cd.first_name, raw.first_name),
+    lastName:  first(src.lastName, src.last_name, cd.last_name, raw.last_name),
+    email:     first(src.email, cd.email, raw.email),
+    phone:     first(src.phone, cd.phone, raw.phone)
   };
 
-  // student info (flat keys)
+  // student info — handle both webhook + survey naming
   const student = {
-    firstName: first(cd.student_first_name),
-    lastName:  first(cd.student_last_name),
-    email:     first(cd.student_email),
-    phone:     first(cd.student_phone)
+    firstName: first(
+      cd.student_first_name,
+      raw["Student's First Name"],
+      raw["Student First Name"],
+      raw.student_first_name
+    ),
+    lastName: first(
+      cd.student_last_name,
+      raw["Student's Last Name"],
+      raw["Student Last Name"],
+      raw.student_last_name
+    ),
+    email: first(
+      cd.student_email,
+      raw["Student's Email "],
+      raw["Student Email"],
+      raw.student_email
+    ),
+    phone: first(
+      cd.student_phone,
+      raw["Student's Phone Number"],
+      raw["Student Phone Number"],
+      raw.student_phone
+    )
   };
 
-  // parent info (flat keys)
+  // parent info — handle both webhook + survey naming
   const parent = {
-    firstName: first(cd.parent_first_name),
-    lastName:  first(cd.parent_last_name),
-    email:     first(cd.parent_email),
-    phone:     first(cd.parent_phone)
+    firstName: first(
+      cd.parent_first_name,
+      raw["Parent First Name"],
+      raw.parent_first_name
+    ),
+    lastName: first(
+      cd.parent_last_name,
+      raw["Parent Last Name"],
+      raw.parent_last_name
+    ),
+    email: first(
+      cd.parent_email,
+      raw["Parent Email Address "],
+      raw["Parent Email"],
+      raw.parent_email
+    ),
+    phone: first(
+      cd.parent_phone,
+      raw["Parent Phone Number"],
+      raw.parent_phone
+    )
   };
 
-  const tags = first(src.tags, cd.tags, src.tagList);
+  const tags = first(src.tags, cd.tags, raw.tags, src.tagList);
 
   return { actor, sender, student, parent, tags, raw: src };
 }
