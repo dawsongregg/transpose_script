@@ -58,22 +58,24 @@ function normalize(src) {
 
 /* ------------------------- payload builders ------------------------- */
 
-// 🧠 These no longer send top-level identifiers to GHL
-// All names/emails/phones are now under `customData`
 function buildPayloadForStudent(counterparts) {
   const { student, parent, tags } = counterparts;
   return {
+    first_name: student.firstName,
+    last_name: student.lastName,
+    email: student.email,
+    phone: student.phone,
     tags,
     contact_type: "lead",
     customData: {
-      first_name: student.firstName,
-      last_name: student.lastName,
-      email: student.email,
-      phone: student.phone,
       parent_first_name: parent.firstName,
       parent_last_name: parent.lastName,
       parent_phone: parent.phone,
       parent_email: parent.email,
+      student_first_name: student.firstName,
+      student_last_name: student.lastName,
+      student_phone: student.phone,
+      student_email: student.email,
       student_parent_or_student: "Student"
     }
   };
@@ -82,17 +84,21 @@ function buildPayloadForStudent(counterparts) {
 function buildPayloadForParent(counterparts) {
   const { parent, student, tags } = counterparts;
   return {
+    first_name: parent.firstName,
+    last_name: parent.lastName,
+    email: parent.email,
+    phone: parent.phone,
     tags,
     contact_type: "lead",
     customData: {
-      first_name: parent.firstName,
-      last_name: parent.lastName,
-      email: parent.email,
-      phone: parent.phone,
       student_first_name: student.firstName,
       student_last_name: student.lastName,
       student_phone: student.phone,
       student_email: student.email,
+      parent_first_name: parent.firstName,
+      parent_last_name: parent.lastName,
+      parent_phone: parent.phone,
+      parent_email: parent.email,
       student_parent_or_student: "Parent"
     }
   };
@@ -115,7 +121,7 @@ app.post("/webhook", async (req, res) => {
       return res.status(400).json({ ok: false, reason: "unknown actor" });
     }
 
-    // skip empty contacts
+    // Skip if no email/phone for counterpart
     const coreCheck = norm.actor === "Student" ? norm.parent : norm.student;
     if (!first(coreCheck.email) && !first(coreCheck.phone)) {
       console.warn("⚠️ Missing core fields for counterpart; skipping send.");
