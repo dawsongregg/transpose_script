@@ -17,44 +17,42 @@ const first = (...vals) =>
 
 // pull safely from many possible locations / spellings
 function normalize(src) {
-  const cd = src.customData || src.customFields || {}; // accept either key
+  const cd = src.customData || src.customFields || {};
 
-  // who is the sender?
+  // identify who filled out the form
   const actor = (
     first(
       cd.student_parent_or_student,
-      cd.student_parent_or_a_student,           // typo safety
       src.student_parent_or_student,
-      src["Are you a parent or a student?"],
-      (cd.userType || src.contactType)          // "Parent"/"Student" if you send it this way
+      cd.userType,
+      src.contactType
     ) || "Unknown"
   ).toString().trim();
 
-  // "basic" (the sender's) info — accept snake or camel or contact.*
+  // sender (who filled out)
   const sender = {
-    firstName: first(src.firstName, src.first_name, src["first_name"], cd.firstName, cd.first_name, src?.contact?.first_name),
-    lastName:  first(src.lastName,  src.last_name,  src["last_name"],  cd.lastName,  cd.last_name,  src?.contact?.last_name),
-    email:     first(src.email,     cd.email,       src?.contact?.email),
-    phone:     first(src.phone,     cd.phone,       src?.contact?.phone)
+    firstName: first(src.firstName, src.first_name, cd.first_name),
+    lastName:  first(src.lastName, src.last_name, cd.last_name),
+    email:     first(src.email, cd.email),
+    phone:     first(src.phone, cd.phone)
   };
 
-  // STUDENT candidates (prefer student1*, then legacy student_* keys)
+  // student info (flat keys)
   const student = {
-    firstName: first(cd.student1FirstName, cd.student_first_name, cd.student_firstname, src.student_first_name),
-    lastName:  first(cd.student1LastName,  cd.student_last_name,  cd.student_lastname,  src.student_last_name),
-    email:     first(cd.student1Email,     cd.student_email,      src.student_email),
-    phone:     first(cd.student1Phone,     cd.student_phone,      src.student_phone)
+    firstName: first(cd.student_first_name),
+    lastName:  first(cd.student_last_name),
+    email:     first(cd.student_email),
+    phone:     first(cd.student_phone)
   };
 
-  // PARENT (collaborator1) candidates (prefer collaborator1*, then legacy parent_* keys, then short keys)
+  // parent info (flat keys)
   const parent = {
-    firstName: first(cd.collaborator1FirstName, cd.parent_first_name, cd.collaborator1F, src.parent_first_name),
-    lastName:  first(cd.collaborator1LastName,  cd.parent_last_name,  cd.collaborator1L, src.parent_last_name),
-    email:     first(cd.collaborator1Email,     cd.parent_email,      cd.collaborator1E, src.parent_email),
-    phone:     first(cd.collaborator1Phone,     cd.parent_phone,      cd.collaborator1P, src.parent_phone)
+    firstName: first(cd.parent_first_name),
+    lastName:  first(cd.parent_last_name),
+    email:     first(cd.parent_email),
+    phone:     first(cd.parent_phone)
   };
 
-  // tags can arrive in a few places
   const tags = first(src.tags, cd.tags, src.tagList);
 
   return { actor, sender, student, parent, tags, raw: src };
